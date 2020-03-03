@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 import api from '../../services/api';
 
-import { Form, SubmitButton, List } from './styles';
+import { Form, SubmitButton, List, Error } from './styles';
 import Container from '../../components/Container';
 
 export default class Main extends Component {
@@ -14,6 +14,7 @@ export default class Main extends Component {
     repositories: [],
     loading: false,
     error: null,
+    messageError: '',
   };
 
   // carregar os dados do localStorage
@@ -35,23 +36,31 @@ export default class Main extends Component {
   }
 
   handleInputChange = e => {
-    this.setState({ newRepo: e.target.value, error: null });
+    this.setState({ newRepo: e.target.value, error: false, messageError: '' });
   };
 
   handleSubmit = async e => {
     e.preventDefault();
 
-    this.setState({ loading: true, error: false });
+    this.setState({ loading: true, error: false, messageError: '' });
 
     try {
       const { newRepo, repositories } = this.state;
 
-      if (newRepo === '')
-        throw new Error('Você precisa inserir um Repositório');
-
+      if (newRepo === '') {
+        throw {
+          name: 'Warning',
+          message: 'Você precisa inserir um Repositório',
+        };
+      }
       const haveRepo = repositories.find(r => r.name === newRepo);
 
-      if (haveRepo) throw 'Repositório duplicado';
+      if (haveRepo) {
+        throw {
+          name: 'Warning',
+          message: 'Repositório duplicado',
+        };
+      }
 
       const response = await api.get(`/repos/${newRepo}`);
 
@@ -62,16 +71,21 @@ export default class Main extends Component {
       this.setState({
         repositories: [...repositories, data],
         newRepo: '',
+        loading: false,
       });
-    } catch (error) {
-      this.setState({ error: true });
+    } catch (e) {
+      const message =
+        e.name !== 'Warning'
+          ? 'A solicitação a api do github falhou'
+          : e.message;
+      this.setState({ error: true, messageError: `Erro: ${message}` });
     } finally {
       this.setState({ loading: false });
     }
   };
 
   render() {
-    const { newRepo, repositories, loading, error } = this.state;
+    const { newRepo, repositories, loading, error, messageError } = this.state;
 
     return (
       <Container>
@@ -81,21 +95,28 @@ export default class Main extends Component {
         </h1>
 
         <Form onSubmit={this.handleSubmit} error={error}>
-          <input
-            type="text"
-            placeholder="Adicionar repositório"
-            value={newRepo}
-            onChange={this.handleInputChange}
-          />
+          <div className="group">
+            <input
+              type="text"
+              placeholder="Adicionar repositório"
+              value={newRepo}
+              onChange={this.handleInputChange}
+              className={error ? 'error' : ''}
+            />
 
-          <SubmitButton loading={loading}>
-            {loading ? (
-              <FaSpinner color="#FFF" size={14} />
-            ) : (
-              <FaPlus color="#fff" size={14} />
-            )}
-          </SubmitButton>
+            <SubmitButton loading={loading}>
+              {loading ? (
+                <FaSpinner color="#FFF" size={14} />
+              ) : (
+                <FaPlus color="#fff" size={14} />
+              )}
+            </SubmitButton>
+          </div>
         </Form>
+
+        <Error>
+          <span className="error">{messageError}</span>
+        </Error>
 
         {/* {error && <Error>{error}</Error>} */}
 

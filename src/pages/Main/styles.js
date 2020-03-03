@@ -5,14 +5,33 @@ export const Form = styled.form`
   display: flex;
   flex-direction: row;
 
-  input {
+  .group {
+    display: flex;
     flex: 1;
-    border: 1px solid #eee ${props => (props.error ? '#ff6b6b' : '#eee')};
-    padding: 10px 15px;
-    border-radius: 4px;
-    font-size: 16px;
 
-    transition: border 0.25s ease-out;
+    input {
+      flex: 1;
+      border: 1px solid #eee;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 16px;
+
+      &.error {
+        border-color: #ff6e6e;
+      }
+    }
+  }
+
+  column-span.error {
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-top: 2px;
+    color: #f44336;
+  }
+
+  .div-error {
+    display: flex;
+    flex: 1;
   }
 `;
 
@@ -73,4 +92,13 @@ export const List = styled.ul`
     color: #7159c1;
     text-decoration: none;
   }
+`;
+
+export const Error = styled.div`
+  color: #f44336;
+  font-size: 20spx;
+  font-weigth: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
